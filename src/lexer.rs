@@ -102,6 +102,16 @@ pub fn file_lexerize(file:&str, lexem_file:&str) -> Result<String, String>
 
         if count_byte_read == 0
         {
+            match w_num_lexem(&mut digit_buf, &parser_input_file) {
+                Err(err) => return Err(err),
+                Ok(_) => ()
+            }
+
+            match w_str_lexem(&mut letter_buf, &parser_input_file) {
+                Err(err) => return Err(err),
+                Ok(_) => ()
+            }
+            
             println!("Lexers work done");
             return Ok("./parser_input.txt".to_string());
         }
@@ -167,7 +177,7 @@ pub fn file_lexerize(file:&str, lexem_file:&str) -> Result<String, String>
                     }
                 }
             },
-            ch if ch.is_alphabetic() =>
+            ch if ch.is_ascii_alphabetic() =>
             {
                 match cur_state {
                     States::Digit => {

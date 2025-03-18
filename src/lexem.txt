@@ -16,3 +16,4 @@ String-severodvinks
 Delimeter-:
 Number-1021
 Delimeter-:
+String-alyaska
