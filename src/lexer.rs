@@ -113,7 +113,7 @@ pub fn file_lexerize(file:&str, lexem_file:&str) -> Result<String, String>
             }
             
             println!("Lexers work done");
-            return Ok("./parser_input.txt".to_string());
+            return Ok("./src/lexem.txt".to_string());
         }
             
 
@@ -137,7 +137,7 @@ pub fn file_lexerize(file:&str, lexem_file:&str) -> Result<String, String>
                     }
                 }
 
-                return Ok("./parser_input.txt".to_string());
+                return Ok("./src/lexem.txt".to_string());
             },
             ch if ch == '|' || ch == ':' => {
                 match cur_state {
