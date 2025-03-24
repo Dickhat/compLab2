@@ -1,4 +1,4 @@
-use std::{fs::File, io::{Read, Write}};
+use std::{fs::File, io::Read, ops::Index};
 
 enum NodeType {
     Country,
@@ -147,7 +147,7 @@ fn country_node(var_stack: & mut Vec<String>,
 
     let childs:Vec<Node> = Vec::new();
 
-    let mut country_node = Node {
+    let country_node = Node {
         node_type,
         name,
         area,
@@ -160,7 +160,7 @@ fn country_node(var_stack: & mut Vec<String>,
 fn region_node(var_stack: & mut Vec<String>,
                iter_lexem_table: & mut std::str::Split<'_, char>,
                tree: & mut Node
-              ) -> Result<String, String>
+              ) -> Result<i64, String>
 {
     let iter_lexem:Vec<&str> = iter_lexem_table.next()
                                                .unwrap()
@@ -210,6 +210,8 @@ fn region_node(var_stack: & mut Vec<String>,
     let name = var_stack.pop().unwrap();
     let node_type = NodeType::Region;
 
+    let name_cp = name.clone();
+
     let childs:Vec<Node> = Vec::new();
 
     let region_node = Node {
@@ -221,12 +223,25 @@ fn region_node(var_stack: & mut Vec<String>,
 
     add_child(tree, region_node);
 
-    Ok("region_node is added".to_string())
+    let mut index = 0;
+
+    for element in & mut tree.childs
+    {
+
+        if element.name == name_cp
+        {
+            return Ok(index);
+        }
+        index = index + 1;
+    };
+
+    return Err("Node is not exist".to_string());
 }
 
 fn district_node(var_stack: & mut Vec<String>,
                  iter_lexem_table: & mut std::str::Split<'_, char>,
-                 tree: & mut Node
+                 tree: & mut Node,
+                 node_index: i64
                 ) -> Result<String, String>
 {
     let iter_lexem:Vec<&str> = iter_lexem_table.next()
@@ -273,55 +288,22 @@ fn district_node(var_stack: & mut Vec<String>,
 
     var_stack.push(iter_lexem[1].to_string());
 
-    let iter_lexem:Vec<&str> = iter_lexem_table.next()
-                                                .unwrap()
-                                                .split('-')
-                                                .collect();
-
-    if iter_lexem[0].to_string() != "Delimeter" || iter_lexem[1].to_string() != ":"
-    {
-        return Err("Must be delimeter like ':'".to_string());
-    }
-
-    let iter_lexem:Vec<&str> = iter_lexem_table.next()
-                                                .unwrap()
-                                                .split('-')
-                                                .collect();
-
-    let krap = iter_lexem[0].to_string();
-    let krap2 = iter_lexem[1].to_string();
-
-    if iter_lexem[0].to_string() != "String"
-    {
-        return Err("Must be String value of region".to_string());
-    }
-
-    var_stack.push(iter_lexem[1].to_string());
-
-    let name_region = var_stack.pop().unwrap();
     let area = var_stack.pop().unwrap().parse::<i64>().unwrap();
     let name = var_stack.pop().unwrap();
     let node_type = NodeType::District;
 
     let childs:Vec<Node> = Vec::new();
 
-    let region_node = Node {
+    let district_node = Node {
         node_type,
         name,
         area,
         childs
     };
 
-    for cur_node in & mut tree.childs
-    {
-        if cur_node.name == name_region
-        {
-            add_child(cur_node, region_node);
-            return Ok("Node is added".to_string());
-        }
-    }
+    add_child(& mut tree.childs[node_index as usize], district_node);
 
-    Err("Node is not added".to_string())
+    return Ok("Node is added".to_string());
 }
 
 fn add_child(parent:& mut Node, child: Node)
@@ -349,6 +331,7 @@ pub fn syntax_parse(lexem_file:&str) -> Result<String, String>
     let mut cur_state:StatesParser = StatesParser::Start;
 
     let mut tree = country_node(&mut var_stack, &mut iter_lexem_table).unwrap();
+    let mut node_index = 0;
 
     loop 
     {
@@ -364,13 +347,14 @@ pub fn syntax_parse(lexem_file:&str) -> Result<String, String>
                                                 .collect();
 
 
-        if iter_lexem[0].to_string() == "" {
+        if iter_lexem[0].to_string() == "" 
+        {
             break;
         }
 
         if iter_lexem[0].to_string() != "Delimeter" && iter_lexem[1].to_string() != "|"
         {
-            return Err("Must be delimeter '|'".to_string());
+            return Err("Must be delimeter '|' after 'Region' or 'District' sentence".to_string());
         }
 
         iter_lexem = iter_lexem_table.next()
@@ -382,7 +366,7 @@ pub fn syntax_parse(lexem_file:&str) -> Result<String, String>
         {
             match region_node(&mut var_stack, &mut iter_lexem_table, &mut tree)
             {
-                Ok(_) => continue,
+                Ok(node) => node_index = node,
                 Err(text) => {
                     println!("{}", text);
                     continue;
@@ -391,7 +375,7 @@ pub fn syntax_parse(lexem_file:&str) -> Result<String, String>
         }
         else if iter_lexem[0].to_string() == "String" && iter_lexem[1].to_string() == "District" 
         {
-            match district_node(&mut var_stack, &mut iter_lexem_table, &mut tree)
+            match district_node(&mut var_stack, &mut iter_lexem_table,  &mut tree , node_index)
             {
                 Ok(_) => continue,
                 Err(text) => {
