@@ -1,1 +1,1 @@
-country:Russia:999|region:alyaska:100|District:severodvinks:1021|District:jora:101|region:moscow:14000|District:memas:25|District:Krasnogorsk:250
+country:Russia:999|region:alyaska:100|district:severodvinks:1021|district:jora:101|region:moscow:14000|district:memas:25|district:Krasnogorsk:250
